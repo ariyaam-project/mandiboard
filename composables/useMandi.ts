@@ -155,7 +155,7 @@ export async function useMandi() {
       })
       await refresh()
     } catch {
-      onboardingError.value = 'Could not save your profile. Check the Cloudflare DB binding and try again.'
+      onboardingError.value = 'Could not save your profile. Try again.'
     }
   }
 

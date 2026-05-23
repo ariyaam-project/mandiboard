@@ -81,12 +81,12 @@ watch([user, profileCreated], () => {
               <h2>Mandi<br />board</h2>
             </div>
             <p class="hero-caption">
-              Every mandi matters.
+              <span class="hl">Every mandi matters.</span>
             </p>
-            <img class="hero-photo" src="/images/hero.png" alt="Friends sharing a mandi platter" />
           </section>
 
-          <section class="landing-side">
+          <section class="landing-side landing-side--photo">
+            <!-- Solar system temporarily removed
             <div class="solar-system" aria-label="Mandi solar system">
               <span class="solar-ring ring-one" />
               <span class="solar-ring ring-two" />
@@ -118,6 +118,8 @@ watch([user, profileCreated], () => {
               <span class="sticker sticker-lime">Mayo</span>
               <span class="sticker sticker-orange">Pepsi</span>
             </div>
+            -->
+            <img class="hero-photo" src="/images/hero.png" alt="Friends sharing a mandi platter" />
           </section>
         </div>
 
@@ -129,8 +131,8 @@ watch([user, profileCreated], () => {
           <span>Track Your Mandi Every Day</span>
         </div>
 
-        <p v-if="authError" class="landing-error">Google sign-in failed. Try again.</p>
-        <p v-if="error" class="landing-error">The app could not reach Cloudflare D1. Check your runtime binding.</p>
+        <p v-if="authError" class="landing-error">Sign-in failed. Try again.</p>
+        <p v-if="error" class="landing-error">Something went wrong. Refresh and try again.</p>
       </section>
 
       <section class="leaderboard-section" aria-labelledby="leaderboard-title">
