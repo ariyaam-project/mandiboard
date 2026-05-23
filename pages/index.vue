@@ -77,14 +77,20 @@ function openDashboard() {
                 Every <span class="area-mark">mandi</span> matters
               </h1>
               <p class="area-desc">
-                Add every mandi you eat on mandi.theeta.in and watch it add up.
-                Easy to use, and just a little scary.
+                Log your mandi sessions, mayo decisions, and soft drink damage.
+                We turn dinner into a leaderboard and your life expectancy into a countdown.
               </p>
               <button class="area-cta" type="button" @click="user ? openDashboard() : loginWithGoogle()">
                 {{ user ? 'Open dashboard' : 'Get started' }}
               </button>
 
-              <p class="area-credit">Made by mandi lovers</p>
+              <div class="area-footnote">
+                <a class="area-star" href="https://github.com/ariyaam-project/mandiboard" target="_blank" rel="noopener">
+                  <span aria-hidden="true">★</span>
+                  Starring this repo may recover lifespan reduced by mandi.
+                </a>
+                <p class="area-credit">Made by mandi lovers</p>
+              </div>
             </div>
 
             <div class="area-stat">

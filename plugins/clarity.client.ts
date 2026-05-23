@@ -1,5 +1,6 @@
 export default defineNuxtPlugin(() => {
   const id = useRuntimeConfig().public.clarityId
+  const route = useRoute()
 
   if (!id) {
     return

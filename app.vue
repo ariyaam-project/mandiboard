@@ -6,6 +6,7 @@
         <NuxtLink to="/privacy">Privacy</NuxtLink>
         <NuxtLink to="/terms">Terms</NuxtLink>
         <a href="mailto:contact@theeta.in">contact@theeta.in</a>
+        <a href="https://github.com/ariyaam-project/mandiboard" target="_blank" rel="noopener">GitHub</a>
         <a href="https://instagram.com/theetadotin" target="_blank" rel="noopener">Instagram</a>
       </nav>
       <strong aria-hidden="true">THEETA</strong>
@@ -373,8 +374,51 @@ button {
   box-shadow: 1px 1px 0 var(--line);
 }
 
+.area-footnote {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.area-star {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: fit-content;
+  max-width: 34ch;
+  margin: auto 0;
+  color: rgba(20, 36, 26, 0.86);
+  font-size: 0.98rem;
+  font-weight: 900;
+  line-height: 1.45;
+  text-decoration: none !important;
+}
+
+.area-star span {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--line);
+  font-size: 1rem;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.area-star:hover {
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+}
+
 .area-credit {
-  margin: auto 0 0;
+  margin: 0;
   font-size: 0.9rem;
   font-weight: 800;
   color: rgba(20, 36, 26, 0.7);
