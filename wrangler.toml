@@ -1,7 +1,10 @@
 name = "mandi-theeta"
+main = ".output/server/index.mjs"
 compatibility_date = "2025-05-15"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = "dist"
+
+[assets]
+directory = ".output/public"
 
 [[d1_databases]]
 binding = "DB"

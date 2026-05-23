@@ -4,10 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "nuxt dev",
-    "dev:cf": "nuxt build && wrangler pages dev dist --compatibility-date=2025-05-15 --compatibility-flags=nodejs_compat --d1=DB",
+    "dev:cf": "nuxt build && wrangler dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
-    "deploy": "nuxt build && wrangler pages deploy dist",
+    "deploy": "nuxt build && wrangler deploy",
     "db:migrate:local": "wrangler d1 migrations apply mandiboard --local",
     "db:migrate:remote": "wrangler d1 migrations apply mandiboard --remote",
     "postinstall": "nuxt prepare"
