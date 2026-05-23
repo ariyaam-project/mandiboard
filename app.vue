@@ -1377,9 +1377,15 @@ label small {
   background: #ece4d6;
 }
 
-.activity-cell[data-level='-1'] {
-  border-color: transparent;
-  background: transparent;
+.activity-cell[data-future='true'] {
+  border-color: rgba(20, 36, 26, 0.1);
+  background: rgba(236, 228, 214, 0.45);
+}
+
+.activity-cell[data-today='true'] {
+  border-color: var(--line);
+  outline: 2px solid var(--line);
+  outline-offset: 2px;
 }
 
 .activity-cell[data-level='1'] {

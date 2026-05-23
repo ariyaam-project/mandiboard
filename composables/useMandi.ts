@@ -168,6 +168,7 @@ export async function useMandi() {
         }
       })
       await refresh()
+      await navigateTo('/dashboard')
     } catch {
       onboardingError.value = 'Could not save your profile. Try again.'
     }

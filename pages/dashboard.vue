@@ -50,20 +50,23 @@ const activityWeeks = computed(() => {
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const weeks = 26
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  const weeks = 27
+  const pastWeeks = Math.floor(weeks / 2)
   const start = new Date(today)
-  start.setDate(start.getDate() - (weeks * 7 - 1))
   start.setDate(start.getDate() - start.getDay())
+  start.setDate(start.getDate() - pastWeeks * 7)
 
-  const columns: { key: string; level: number; count: number }[][] = []
+  const columns: { key: string; level: number; count: number; isToday: boolean; isFuture: boolean }[][] = []
   const cursor = new Date(start)
-  while (cursor <= today) {
-    const column: { key: string; level: number; count: number }[] = []
+  for (let week = 0; week < weeks; week += 1) {
+    const column: { key: string; level: number; count: number; isToday: boolean; isFuture: boolean }[] = []
     for (let i = 0; i < 7; i += 1) {
       const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`
-      const count = cursor > today ? 0 : counts.get(key) || 0
-      const level = cursor > today ? -1 : count === 0 ? 0 : count <= 1 ? 1 : count <= 2 ? 2 : count <= 4 ? 3 : 4
-      column.push({ key, level, count })
+      const isFuture = cursor > today
+      const count = isFuture ? 0 : counts.get(key) || 0
+      const level = count === 0 ? 0 : count <= 1 ? 1 : count <= 2 ? 2 : count <= 4 ? 3 : 4
+      column.push({ key, level, count, isToday: key === todayKey, isFuture })
       cursor.setDate(cursor.getDate() + 1)
     }
     columns.push(column)
@@ -112,6 +115,8 @@ watch([user, profileCreated], () => {
                 :key="cell.key"
                 class="activity-cell"
                 :data-level="cell.level"
+                :data-today="cell.isToday"
+                :data-future="cell.isFuture"
                 :title="`${cell.key} · ${cell.count} mandi`"
               />
             </div>
