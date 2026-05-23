@@ -8,8 +8,8 @@
     "build": "nuxt build",
     "preview": "nuxt preview",
     "deploy": "nuxt build && wrangler pages deploy dist",
-    "db:migrate:local": "wrangler d1 migrations apply mandi-theeta --local",
-    "db:migrate:remote": "wrangler d1 migrations apply mandi-theeta --remote",
+    "db:migrate:local": "wrangler d1 migrations apply mandiboard --local",
+    "db:migrate:remote": "wrangler d1 migrations apply mandiboard --remote",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

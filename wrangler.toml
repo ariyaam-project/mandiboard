@@ -5,6 +5,6 @@ pages_build_output_dir = "dist"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "mandi-theeta"
-database_id = "replace-with-your-cloudflare-d1-database-id"
-preview_database_id = "mandi-theeta-local"
+database_name = "mandiboard"
+database_id = "5219e04f-92a5-49b4-85f1-b2fb3821433d"
+preview_database_id = "mandiboard-local"
