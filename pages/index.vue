@@ -65,7 +65,7 @@ watch([user, profileCreated], () => {
         <nav class="landing-nav" aria-label="Primary">
           <a class="brand-mark" href="/" aria-label="Mandi Theeta home">
             <img src="/images/logo.png" alt="Mandi Theeta" />
-            <span class="brand-name">theeta.in</span>
+            <span class="brand-name">mandi.theeta.in</span>
           </a>
         </nav>
 
