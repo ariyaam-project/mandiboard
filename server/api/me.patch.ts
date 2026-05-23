@@ -1,9 +1,12 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { requireCurrentUser } from '../utils/auth'
 import { getDb } from '../utils/db'
+import { assertSameOrigin } from '../utils/security'
 import { ensureSchema } from '../utils/schema'
 
 export default defineEventHandler(async (event) => {
+  assertSameOrigin(event)
+
   const user = await requireCurrentUser(event)
   const body = await readBody<{ initialLifeExpectancyYears?: number; displayName?: string }>(event)
   const initialLifeExpectancyYears = Number(body.initialLifeExpectancyYears)

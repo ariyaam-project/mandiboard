@@ -1,4 +1,4 @@
-import { defineEventHandler } from 'h3'
+import { defineEventHandler, setHeader } from 'h3'
 import { getCurrentUser } from '../utils/auth'
 import { getDb } from '../utils/db'
 import { ensureSchema } from '../utils/schema'
@@ -15,6 +15,8 @@ type SessionRow = {
 }
 
 export default defineEventHandler(async (event) => {
+  setHeader(event, 'cache-control', 'no-store')
+
   if (!event.context.cloudflare?.env.DB) {
     return { user: null, sessions: [] }
   }

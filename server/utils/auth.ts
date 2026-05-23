@@ -20,7 +20,6 @@ export type UserRow = {
 
 export type AuthUser = {
   id: string
-  email: string
   displayName: string
   avatarUrl: string | null
   initialLifeExpectancyYears: number | null
@@ -113,7 +112,6 @@ export async function clearAuthSession(event: H3Event) {
 function mapUser(row: UserRow): AuthUser {
   return {
     id: row.id,
-    email: row.email,
     displayName: row.display_name,
     avatarUrl: row.avatar_url,
     initialLifeExpectancyYears: row.initial_life_expectancy_years

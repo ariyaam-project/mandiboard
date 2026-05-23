@@ -1,6 +1,5 @@
 <script setup lang="ts">
 type Leader = {
-  id: string
   displayName: string
   avatarUrl: string | null
   mandiCount: number
@@ -95,8 +94,8 @@ function openDashboard() {
               </div>
               <div class="face-row" aria-hidden="true">
                 <img
-                  v-for="leader in leaders"
-                  :key="leader.id"
+                  v-for="(leader, index) in leaders"
+                  :key="`${leader.displayName}-${index}`"
                   :src="leader.avatarUrl || ''"
                   :alt="leader.displayName"
                   referrerpolicy="no-referrer"

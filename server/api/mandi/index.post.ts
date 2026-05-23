@@ -7,9 +7,12 @@ import {
 } from '../../utils/constants'
 import { requireCurrentUser } from '../../utils/auth'
 import { getDb } from '../../utils/db'
+import { assertSameOrigin } from '../../utils/security'
 import { ensureSchema } from '../../utils/schema'
 
 export default defineEventHandler(async (event) => {
+  assertSameOrigin(event)
+
   const user = await requireCurrentUser(event)
   const config = useRuntimeConfig(event)
   const body = await readBody<{
