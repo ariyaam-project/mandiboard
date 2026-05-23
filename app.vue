@@ -2,6 +2,12 @@
   <main class="shell">
     <NuxtPage />
     <footer class="site-footer" aria-label="Footer">
+      <nav class="footer-links" aria-label="Footer links">
+        <NuxtLink to="/privacy">Privacy</NuxtLink>
+        <NuxtLink to="/terms">Terms</NuxtLink>
+        <a href="mailto:contact@theeta.in">contact@theeta.in</a>
+        <a href="https://instagram.com/theetadotin" target="_blank" rel="noopener">Instagram</a>
+      </nav>
       <strong aria-hidden="true">THEETA</strong>
     </footer>
   </main>
@@ -50,10 +56,16 @@ button {
 }
 
 .shell {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   margin: 0;
   padding: 0;
   min-height: 100vh;
+}
+
+.shell > .site-footer {
+  margin-top: auto;
 }
 
 .landing-frame {
@@ -879,6 +891,32 @@ button {
     linear-gradient(180deg, #f2e7da 0%, #f6efe1 50%, #ece0cb 100%);
 }
 
+.footer-links {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 72px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  opacity: 0.62;
+}
+
+.footer-links a {
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
 .site-footer > strong {
   position: absolute;
   left: 50%;
@@ -1061,6 +1099,44 @@ h3 {
   border-radius: 0;
   background: var(--cream);
   box-shadow: none;
+}
+
+.legal {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 56px 24px 80px;
+}
+
+.legal h1 {
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+
+.legal p {
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.legal-note {
+  padding: 18px 20px;
+  border: 2px solid var(--line);
+  background: var(--green-soft);
+  box-shadow: 6px 6px 0 var(--line);
+  color: var(--ink) !important;
+  font-weight: 800;
+}
+
+.legal-contact {
+  margin-top: 28px;
+  color: var(--ink) !important;
+  font-weight: 800;
+}
+
+.legal a {
+  color: var(--accent);
+  font-weight: 800;
 }
 
 .onboarding {
@@ -1307,11 +1383,12 @@ label small {
 }
 
 .activity-cell[data-level='1'] {
-  background: #ffd2b8;
+  border-color: rgba(20, 36, 26, 0.28);
+  background: #ffb083;
 }
 
 .activity-cell[data-level='2'] {
-  background: #ff9e6b;
+  background: #ff8a47;
 }
 
 .activity-cell[data-level='3'] {
@@ -1719,6 +1796,7 @@ li b {
 }
 
 .modal-card {
+  position: relative;
   width: min(900px, 100%);
   max-height: 90vh;
   margin: auto;
@@ -1740,16 +1818,20 @@ li b {
 }
 
 .icon-button {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  z-index: 2;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   flex: 0 0 auto;
   border: 2px solid var(--line);
   border-radius: 0;
   background: var(--cream);
   color: var(--ink);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 900;
   line-height: 1;
   box-shadow: 3px 3px 0 var(--line);
@@ -1839,6 +1921,12 @@ li b {
   text-align: center;
   font-size: 1.2rem;
   font-weight: 900;
+}
+
+.modal-warn {
+  margin: 0;
+  color: var(--accent);
+  font-weight: 800;
 }
 
 .modal-enter-active,
@@ -2126,6 +2214,11 @@ li b {
 
   .site-footer {
     min-height: 230px;
+  }
+
+  .footer-links {
+    top: 34px;
+    gap: 8px 16px;
   }
 
   .hero-panel,

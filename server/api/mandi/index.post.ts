@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     softDrinks?: number
     softDrinkType?: string
   }>(event)
-  const quarterUnits = Math.min(80, Math.floor(Number(body.quarterUnits)))
+  const quarterUnits = Math.min(4, Math.floor(Number(body.quarterUnits)))
   const mayoUnits = Math.min(20, Math.max(0, Math.floor(Number(body.mayoUnits) || 0)))
   const softDrinks = Math.min(20, Math.max(0, Math.floor(Number(body.softDrinks) || 0)))
   const softDrinkType = normalizeSoftDrinkType(body.softDrinkType)
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
   if (!Number.isFinite(quarterUnits) || quarterUnits < 1) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Mandi quantity must be between 1 and 80 quarters'
+      statusMessage: 'Mandi quantity must be between 1 and 4 quarters'
     })
   }
 

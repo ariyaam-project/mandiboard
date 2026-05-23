@@ -189,7 +189,7 @@ export async function useMandi() {
       return
     }
 
-    const normalizedQuarterUnits = Math.min(80, Math.floor(quarterUnits.value))
+    const normalizedQuarterUnits = Math.min(4, Math.floor(quarterUnits.value))
     const normalizedMayoUnits = Math.min(20, Math.max(0, Math.floor(mayoUnits.value || 0)))
     const normalizedSoftDrinks = Math.min(20, Math.max(0, Math.floor(softDrinks.value || 0)))
 
@@ -231,7 +231,7 @@ export async function useMandi() {
   }
 
   function addMandi(units: number) {
-    quarterUnits.value = Math.min(80, quarterUnits.value + units)
+    quarterUnits.value = Math.min(4, quarterUnits.value + units)
   }
 
   function addMayo() {

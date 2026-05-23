@@ -248,6 +248,7 @@ watch([user, profileCreated], () => {
                 <strong>{{ formatShortHours(estimatedPenalty) }}</strong>
               </div>
 
+              <p v-if="quarterUnits > 2" class="modal-warn">ne jeevikan vendi thinnano atho thinnan vendi jeevikano? 🙂</p>
               <p v-if="sessionError" class="error">{{ sessionError }}</p>
 
               <div class="modal-actions">

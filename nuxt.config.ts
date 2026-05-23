@@ -12,7 +12,8 @@ export default defineNuxtConfig({
       appUrl: 'http://localhost:3000',
       penaltyHoursPerQuarter: 1.5,
       mayoPenaltyHours: 1,
-      softDrinkPenaltyHours: 2
+      softDrinkPenaltyHours: 2,
+      clarityId: ''
     }
   },
   modules: ['@nuxtjs/google-fonts'],
