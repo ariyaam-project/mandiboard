@@ -1,5 +1,6 @@
 name = "mandi-theeta"
 compatibility_date = "2025-05-15"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
 [[d1_databases]]

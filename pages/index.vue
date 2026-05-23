@@ -64,63 +64,50 @@ watch([user, profileCreated], () => {
       <section class="landing-frame">
         <nav class="landing-nav" aria-label="Primary">
           <a class="brand-mark" href="/" aria-label="Mandi Theeta home">
-            <span aria-hidden="true">◉</span>
-            MANDI THEETA
+            <img src="/images/logo.png" alt="Mandi Theeta" />
+            <span class="brand-name">theeta.in</span>
           </a>
-          <div class="nav-links" aria-hidden="true">
-            <span>TRACK</span>
-            <span>DAMAGE</span>
-            <span>STREAKS</span>
-          </div>
-          <button class="nav-cta" type="button" @click="loginWithGoogle">SIGN IN</button>
         </nav>
 
-        <div class="landing-grid">
-          <section class="landing-main">
-            <div class="title-row">
-              <h2>Mandi<br />board</h2>
-            </div>
-            <p class="hero-caption">
-              <span class="hl">Every mandi matters.</span>
-            </p>
-          </section>
+        <div class="area-hero">
+          <div class="area-left">
+            <div class="area-panel">
+              <h1 class="area-title">
+                Every <span class="area-mark">mandi</span> matters
+              </h1>
+              <p class="area-desc">
+                Add every mandi you eat on mandi.theeta.in and watch it add up.
+                Easy to use, and just a little scary.
+              </p>
+              <button class="area-cta" type="button" @click="loginWithGoogle">Get started</button>
 
-          <section class="landing-side landing-side--photo">
-            <!-- Solar system temporarily removed
-            <div class="solar-system" aria-label="Mandi solar system">
-              <span class="solar-ring ring-one" />
-              <span class="solar-ring ring-two" />
-              <span class="solar-ring ring-three" />
-              <span class="solar-ring ring-four" />
-              <img class="orbit-item orbit-mayo" src="/images/mayo.png" alt="Mayonnaise side" />
-              <img class="orbit-item orbit-cola" src="/images/cola.png" alt="Pepsi and Coca-Cola soft drinks" />
-              <div
-                v-for="(leader, index) in leaders"
-                :key="leader.id"
-                class="orbit-person"
-                :class="`orbit-person-${index + 1}`"
-                :title="`#${index + 1} ${leader.displayName}`"
-              >
+              <p class="area-credit">Made by mandi lovers</p>
+            </div>
+
+            <div class="area-stat">
+              <div class="area-stat-copy">
+                <strong>500+</strong>
+                <span>Mandi lovers</span>
+              </div>
+              <div class="face-row" aria-hidden="true">
                 <img
-                  v-if="leader.avatarUrl"
-                  :src="leader.avatarUrl"
-                  :alt="`#${index + 1} ${leader.displayName}`"
+                  v-for="leader in leaders"
+                  :key="leader.id"
+                  :src="leader.avatarUrl || ''"
+                  :alt="leader.displayName"
                   referrerpolicy="no-referrer"
                 />
-                <span v-else class="orbit-person-fallback">{{ leaderInitial(leader) }}</span>
-                <b class="rank-tag">#{{ index + 1 }}</b>
+                <span class="face-fill">+</span>
               </div>
-              <img class="solar-core" src="/images/main_mandi.png" alt="Mandi platter" />
             </div>
+          </div>
 
-            <div class="orbit-labels">
-              <span class="sticker sticker-cream">Mandi</span>
-              <span class="sticker sticker-lime">Mayo</span>
-              <span class="sticker sticker-orange">Pepsi</span>
-            </div>
-            -->
-            <img class="hero-photo" src="/images/hero.png" alt="Friends sharing a mandi platter" />
-          </section>
+          <div class="area-image">
+            <img src="/images/hero.png" alt="Friends sharing a mandi platter" />
+            <span class="area-badge badge-agro">Every plate counts</span>
+            <span class="area-badge badge-acres">5.5 mandi logged</span>
+            <span class="area-badge badge-green">Theeta</span>
+          </div>
         </div>
 
         <div class="ticker" aria-hidden="true">

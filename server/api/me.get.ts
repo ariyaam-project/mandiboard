@@ -15,6 +15,10 @@ type SessionRow = {
 }
 
 export default defineEventHandler(async (event) => {
+  if (!event.context.cloudflare?.env.DB) {
+    return { user: null, sessions: [] }
+  }
+
   const user = await getCurrentUser(event)
 
   if (!user) {

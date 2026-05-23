@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "nuxt dev",
-    "dev:cf": "nuxt build && wrangler pages dev dist --compatibility-date=2025-05-15 --d1=DB",
+    "dev:cf": "nuxt build && wrangler pages dev dist --compatibility-date=2025-05-15 --compatibility-flags=nodejs_compat --d1=DB",
     "build": "nuxt build",
     "preview": "nuxt preview",
     "deploy": "nuxt build && wrangler pages deploy dist",
