@@ -23,11 +23,37 @@ type MeResponse = {
   sessions: MandiSession[]
 }
 
+type Leader = {
+  id: string
+  displayName: string
+  avatarUrl: string | null
+  mandiCount: number
+  sessionCount: number
+}
+
+type LeaderboardResponse = {
+  leaders: Leader[]
+}
+
 const config = useRuntimeConfig()
 const route = useRoute()
 const { data, pending, error, refresh } = await useFetch<MeResponse>('/api/me', {
   default: () => ({ user: null, sessions: [] })
 })
+const { data: leaderboard } = await useFetch<LeaderboardResponse>('/api/leaderboard', {
+  default: () => ({ leaders: [] })
+})
+
+const leaders = computed(() => leaderboard.value.leaders)
+const podium = computed(() => ({
+  first: leaders.value[0] ?? null,
+  second: leaders.value[1] ?? null,
+  third: leaders.value[2] ?? null
+}))
+
+function leaderInitial(leader: Leader) {
+  return leader.displayName.trim().charAt(0).toUpperCase() || '?'
+}
 
 const lifeExpectancyYears = ref(75)
 const onboardingError = ref('')
@@ -38,6 +64,7 @@ const softDrinkType = ref('pepsi')
 const sessionError = ref('')
 const latestPenalty = ref(0)
 const pulseLife = ref(false)
+const showLogModal = ref(false)
 const authError = computed(() => route.query.authError === 'google')
 const user = computed(() => data.value.user)
 const sessions = computed(() => data.value.sessions)
@@ -183,6 +210,7 @@ async function logMandiSession() {
 
     data.value.sessions = [response.session, ...data.value.sessions]
     resetOrder()
+    showLogModal.value = false
     latestPenalty.value = response.session.penaltyHours
     pulseLife.value = true
     window.setTimeout(() => {
@@ -218,6 +246,16 @@ function resetOrder() {
   mayoUnits.value = 0
   softDrinks.value = 0
   softDrinkType.value = 'pepsi'
+}
+
+function openLogModal() {
+  sessionError.value = ''
+  resetOrder()
+  showLogModal.value = true
+}
+
+function closeLogModal() {
+  showLogModal.value = false
 }
 
 function removeMandiQuarter() {
@@ -363,37 +401,12 @@ function formatDuration(hoursValue: number) {
           <div class="landing-grid">
             <section class="landing-main">
               <div class="title-row">
-                <h2>MANDI<br />LEADERBOARD</h2>
-                <span class="burst">RICE<br />RANKS</span>
+                <h2>Mandi<br />board</h2>
               </div>
               <p class="hero-caption">
-                See who is climbing the podium one quarter mandi, mayo cup, and cola can at a time.
+                Every mandi matters.
               </p>
-
-              <div class="hero-plate-card">
-                <div class="orbit-lines" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                </div>
-                <div class="hero-food-photo" aria-hidden="true">
-                  <span class="food-rice" />
-                  <span class="food-meat one" />
-                  <span class="food-meat two" />
-                  <span class="food-leaf" />
-                </div>
-              </div>
-
-              <article class="recipe-note">
-                <strong>Today’s formula:</strong>
-                <ul>
-                  <li>Mandi by quarters</li>
-                  <li>Mayo as side damage</li>
-                  <li>Soft drinks as regret tax</li>
-                  <li>Streaks, because denial repeats</li>
-                </ul>
-                <button type="button" @click="loginWithGoogle">Start logging</button>
-              </article>
+              <img class="hero-photo" src="/images/hero.png" alt="Friends sharing a mandi platter" />
             </section>
 
             <section class="landing-side">
@@ -401,30 +414,33 @@ function formatDuration(hoursValue: number) {
                 <span class="solar-ring ring-one" />
                 <span class="solar-ring ring-two" />
                 <span class="solar-ring ring-three" />
+                <span class="solar-ring ring-four" />
                 <img class="orbit-item orbit-mayo" src="/images/mayo.png" alt="Mayonnaise side" />
                 <img class="orbit-item orbit-cola" src="/images/cola.png" alt="Pepsi and Coca-Cola soft drinks" />
+                <div
+                  v-for="(leader, index) in leaders"
+                  :key="leader.id"
+                  class="orbit-person"
+                  :class="`orbit-person-${index + 1}`"
+                  :title="`#${index + 1} ${leader.displayName}`"
+                >
+                  <img
+                    v-if="leader.avatarUrl"
+                    :src="leader.avatarUrl"
+                    :alt="`#${index + 1} ${leader.displayName}`"
+                    referrerpolicy="no-referrer"
+                  />
+                  <span v-else class="orbit-person-fallback">{{ leaderInitial(leader) }}</span>
+                  <b class="rank-tag">#{{ index + 1 }}</b>
+                </div>
                 <img class="solar-core" src="/images/main_mandi.png" alt="Mandi platter" />
               </div>
 
               <div class="orbit-labels">
-                <span class="sticker sticker-cream">Main</span>
-                <span class="sticker sticker-lime">Sides</span>
-                <span class="sticker sticker-orange">Drinks</span>
+                <span class="sticker sticker-cream">Mandi</span>
+                <span class="sticker sticker-lime">Mayo</span>
+                <span class="sticker sticker-orange">Pepsi</span>
               </div>
-            </section>
-
-            <section class="category-panel">
-              <button type="button">Quarter</button>
-              <button type="button">Mayo</button>
-              <button class="active" type="button">Pepsi</button>
-              <button type="button">Streak</button>
-            </section>
-
-            <section class="metric-panel">
-              <span aria-hidden="true">*</span>
-              <strong>-6h</strong>
-              <p>Full mandi baseline</p>
-              <small>Cloudflare D1 backed</small>
             </section>
           </div>
 
@@ -449,33 +465,50 @@ function formatDuration(hoursValue: number) {
             </p>
           </div>
 
-          <div class="podium-stage" aria-label="Sample mandi leaderboard podium">
-            <article class="podium-person second">
-              <div class="avatar-head">A</div>
+          <div v-if="leaders.length" class="podium-stage" aria-label="Mandi leaderboard podium">
+            <article v-if="podium.second" class="podium-person second">
+              <div class="avatar-head">
+                <img v-if="podium.second.avatarUrl" :src="podium.second.avatarUrl" :alt="`${podium.second.displayName} avatar`" referrerpolicy="no-referrer" />
+                <template v-else>{{ leaderInitial(podium.second) }}</template>
+              </div>
               <div class="stick-body" aria-hidden="true"><span /></div>
               <div class="podium-block">
                 <strong>2</strong>
-                <span>Half-plate Hero</span>
+                <span>{{ podium.second.displayName }}</span>
+                <small>{{ formatMandiQuantity(podium.second.mandiCount) }} mandi</small>
               </div>
             </article>
 
-            <article class="podium-person first">
-              <div class="avatar-head champion">S</div>
+            <article v-if="podium.first" class="podium-person first">
+              <div class="avatar-head champion">
+                <img v-if="podium.first.avatarUrl" :src="podium.first.avatarUrl" :alt="`${podium.first.displayName} avatar`" referrerpolicy="no-referrer" />
+                <template v-else>{{ leaderInitial(podium.first) }}</template>
+              </div>
               <div class="stick-body" aria-hidden="true"><span /></div>
               <div class="podium-block">
                 <strong>1</strong>
-                <span>Rice Sovereign</span>
+                <span>{{ podium.first.displayName }}</span>
+                <small>{{ formatMandiQuantity(podium.first.mandiCount) }} mandi</small>
               </div>
             </article>
 
-            <article class="podium-person third">
-              <div class="avatar-head">M</div>
+            <article v-if="podium.third" class="podium-person third">
+              <div class="avatar-head">
+                <img v-if="podium.third.avatarUrl" :src="podium.third.avatarUrl" :alt="`${podium.third.displayName} avatar`" referrerpolicy="no-referrer" />
+                <template v-else>{{ leaderInitial(podium.third) }}</template>
+              </div>
               <div class="stick-body" aria-hidden="true"><span /></div>
               <div class="podium-block">
                 <strong>3</strong>
-                <span>Mayo Sprinter</span>
+                <span>{{ podium.third.displayName }}</span>
+                <small>{{ formatMandiQuantity(podium.third.mandiCount) }} mandi</small>
               </div>
             </article>
+          </div>
+
+          <div v-else class="podium-empty">
+            <strong>No rankings yet</strong>
+            <span>Be the first to log a mandi and claim the podium.</span>
           </div>
         </section>
       </div>
@@ -558,131 +591,12 @@ function formatDuration(hoursValue: number) {
           </article>
         </div>
 
-        <div class="log-panel">
-          <form class="menu-card" @submit.prevent="logMandiSession">
-            <div class="menu-head">
-              <div>
-                <p class="section-kicker">Menu card</p>
-                <h3>Build this session</h3>
-              </div>
-              <button class="ghost-button compact-button" type="button" @click="resetOrder">Clear</button>
-            </div>
-
-            <div class="menu-grid">
-              <section class="menu-category">
-                <div class="category-head">
-                  <span class="category-icon plate-icon" aria-hidden="true"><i /></span>
-                  <div>
-                    <strong>Main</strong>
-                    <small>Mandi in quarter multiples</small>
-                  </div>
-                </div>
-
-                <div class="menu-items">
-                  <button class="menu-item" type="button" @click="addMandi(1)">
-                    <span class="item-icon plate-quarter" aria-hidden="true"><i /></span>
-                    <strong>Quarter</strong>
-                    <small>+{{ formatShortHours(penaltyHoursPerQuarter) }}</small>
-                  </button>
-                  <button class="menu-item" type="button" @click="addMandi(2)">
-                    <span class="item-icon plate-half" aria-hidden="true"><i /></span>
-                    <strong>Half</strong>
-                    <small>+{{ formatShortHours(penaltyHoursPerQuarter * 2) }}</small>
-                  </button>
-                  <button class="menu-item" type="button" @click="addMandi(4)">
-                    <span class="item-icon plate-full" aria-hidden="true"><i /></span>
-                    <strong>Full</strong>
-                    <small>+{{ formatShortHours(penaltyHoursPerQuarter * 4) }}</small>
-                  </button>
-                </div>
-              </section>
-
-              <section class="menu-category">
-                <div class="category-head">
-                  <span class="category-icon mayo-icon" aria-hidden="true" />
-                  <div>
-                    <strong>Sides</strong>
-                    <small>Mayonnaise damage control, allegedly</small>
-                  </div>
-                </div>
-
-                <div class="menu-items single">
-                  <button class="menu-item" type="button" @click="addMayo">
-                    <span class="item-icon mayo-cup" aria-hidden="true" />
-                    <strong>Mayo cup</strong>
-                    <small>+{{ formatShortHours(mayoPenaltyHours) }}</small>
-                  </button>
-                </div>
-              </section>
-
-              <section class="menu-category">
-                <div class="category-head">
-                  <span class="category-icon drink-icon" aria-hidden="true" />
-                  <div>
-                    <strong>Drinks</strong>
-                    <small>Soft drinks for multiplier energy</small>
-                  </div>
-                </div>
-
-                <div class="menu-items">
-                  <button class="menu-item" type="button" @click="addSoftDrink('pepsi')">
-                    <span class="item-icon can-icon can-blue" aria-hidden="true" />
-                    <strong>Pepsi</strong>
-                    <small>+{{ formatShortHours(softDrinkPenaltyHours) }}</small>
-                  </button>
-                  <button class="menu-item" type="button" @click="addSoftDrink('coca-cola')">
-                    <span class="item-icon can-icon can-red" aria-hidden="true" />
-                    <strong>Coca-Cola</strong>
-                    <small>+{{ formatShortHours(softDrinkPenaltyHours) }}</small>
-                  </button>
-                  <button class="menu-item" type="button" @click="addSoftDrink('other')">
-                    <span class="item-icon can-icon can-neutral" aria-hidden="true" />
-                    <strong>Other</strong>
-                    <small>+{{ formatShortHours(softDrinkPenaltyHours) }}</small>
-                  </button>
-                </div>
-              </section>
-            </div>
-
-            <aside class="order-summary">
-              <div>
-                <span class="stat-label">Current order</span>
-                <strong>{{ formatMandiQuantity(quarterUnits / 4) }} mandi</strong>
-              </div>
-
-              <div class="order-lines">
-                <div>
-                  <span>Main</span>
-                  <b>{{ quarterUnits }} quarter{{ quarterUnits === 1 ? '' : 's' }}</b>
-                  <button type="button" aria-label="Remove one mandi quarter" @click="removeMandiQuarter">−</button>
-                </div>
-                <div>
-                  <span>Sides</span>
-                  <b>{{ mayoUnits }} mayo</b>
-                  <button type="button" aria-label="Remove one mayo" @click="removeMayo">−</button>
-                </div>
-                <div>
-                  <span>Drinks</span>
-                  <b>{{ softDrinks }} {{ softDrinkType }}</b>
-                  <button type="button" aria-label="Remove one soft drink" @click="removeSoftDrink">−</button>
-                </div>
-              </div>
-
-              <div class="damage-ticket">
-                <span>Estimated damage</span>
-                <strong>{{ formatShortHours(estimatedPenalty) }}</strong>
-              </div>
-
-              <button class="primary-button" type="submit">Log order</button>
-            </aside>
-          </form>
-          <p v-if="sessionError" class="error">{{ sessionError }}</p>
-          <p class="fine-print">
-            Estimated damage: {{ formatShortHours(estimatedPenalty) }}. Formula:
-            {{ formatShortHours(penaltyHoursPerQuarter) }} per quarter,
-            {{ formatShortHours(mayoPenaltyHours) }} per mayo,
-            {{ formatShortHours(softDrinkPenaltyHours) }} per soft drink.
-          </p>
+        <div class="log-cta">
+          <div>
+            <p class="section-kicker">Menu card</p>
+            <h3>Log today's mandi damage</h3>
+          </div>
+          <button class="primary-button" type="button" @click="openLogModal">+ Log mandi</button>
         </div>
 
         <div class="history">
@@ -712,15 +626,140 @@ function formatDuration(hoursValue: number) {
             <span>The ledger waits. The rice probably does not.</span>
           </div>
         </div>
+
+        <Teleport to="body">
+          <Transition name="modal">
+            <div v-if="showLogModal" class="modal-backdrop" @click.self="closeLogModal">
+              <form class="modal-card menu-card" @submit.prevent="logMandiSession">
+                <div class="menu-head">
+                  <div>
+                    <p class="section-kicker">Menu card</p>
+                    <h3>Build this session</h3>
+                  </div>
+                  <button class="icon-button" type="button" aria-label="Close" @click="closeLogModal">×</button>
+                </div>
+
+                <div class="menu-grid">
+                  <section class="menu-category">
+                    <div class="category-head">
+                      <span class="category-icon plate-icon" aria-hidden="true"><i /></span>
+                      <div>
+                        <strong>Main</strong>
+                        <small>Mandi in quarter multiples</small>
+                      </div>
+                    </div>
+
+                    <div class="menu-items">
+                      <button class="menu-item" type="button" @click="addMandi(1)">
+                        <span class="item-icon plate-quarter" aria-hidden="true"><i /></span>
+                        <strong>Quarter</strong>
+                        <small>+{{ formatShortHours(penaltyHoursPerQuarter) }}</small>
+                      </button>
+                      <button class="menu-item" type="button" @click="addMandi(2)">
+                        <span class="item-icon plate-half" aria-hidden="true"><i /></span>
+                        <strong>Half</strong>
+                        <small>+{{ formatShortHours(penaltyHoursPerQuarter * 2) }}</small>
+                      </button>
+                      <button class="menu-item" type="button" @click="addMandi(4)">
+                        <span class="item-icon plate-full" aria-hidden="true"><i /></span>
+                        <strong>Full</strong>
+                        <small>+{{ formatShortHours(penaltyHoursPerQuarter * 4) }}</small>
+                      </button>
+                    </div>
+                  </section>
+
+                  <section class="menu-category">
+                    <div class="category-head">
+                      <span class="category-icon mayo-icon" aria-hidden="true" />
+                      <div>
+                        <strong>Sides</strong>
+                        <small>Mayonnaise damage control, allegedly</small>
+                      </div>
+                    </div>
+
+                    <div class="menu-items single">
+                      <button class="menu-item" type="button" @click="addMayo">
+                        <span class="item-icon mayo-cup" aria-hidden="true" />
+                        <strong>Mayo cup</strong>
+                        <small>+{{ formatShortHours(mayoPenaltyHours) }}</small>
+                      </button>
+                    </div>
+                  </section>
+
+                  <section class="menu-category">
+                    <div class="category-head">
+                      <span class="category-icon drink-icon" aria-hidden="true" />
+                      <div>
+                        <strong>Drinks</strong>
+                        <small>Soft drinks for multiplier energy</small>
+                      </div>
+                    </div>
+
+                    <div class="menu-items">
+                      <button class="menu-item" type="button" @click="addSoftDrink('pepsi')">
+                        <span class="item-icon can-icon can-blue" aria-hidden="true" />
+                        <strong>Pepsi</strong>
+                        <small>+{{ formatShortHours(softDrinkPenaltyHours) }}</small>
+                      </button>
+                      <button class="menu-item" type="button" @click="addSoftDrink('coca-cola')">
+                        <span class="item-icon can-icon can-red" aria-hidden="true" />
+                        <strong>Coca-Cola</strong>
+                        <small>+{{ formatShortHours(softDrinkPenaltyHours) }}</small>
+                      </button>
+                      <button class="menu-item" type="button" @click="addSoftDrink('other')">
+                        <span class="item-icon can-icon can-neutral" aria-hidden="true" />
+                        <strong>Other</strong>
+                        <small>+{{ formatShortHours(softDrinkPenaltyHours) }}</small>
+                      </button>
+                    </div>
+                  </section>
+                </div>
+
+                <aside class="order-summary">
+                  <div>
+                    <span class="stat-label">Current order</span>
+                    <strong>{{ formatMandiQuantity(quarterUnits / 4) }} mandi</strong>
+                  </div>
+
+                  <div class="order-lines">
+                    <div>
+                      <span>Main</span>
+                      <b>{{ quarterUnits }} quarter{{ quarterUnits === 1 ? '' : 's' }}</b>
+                      <button type="button" aria-label="Remove one mandi quarter" @click="removeMandiQuarter">−</button>
+                    </div>
+                    <div>
+                      <span>Sides</span>
+                      <b>{{ mayoUnits }} mayo</b>
+                      <button type="button" aria-label="Remove one mayo" @click="removeMayo">−</button>
+                    </div>
+                    <div>
+                      <span>Drinks</span>
+                      <b>{{ softDrinks }} {{ softDrinkType }}</b>
+                      <button type="button" aria-label="Remove one soft drink" @click="removeSoftDrink">−</button>
+                    </div>
+                  </div>
+
+                  <div class="damage-ticket">
+                    <span>Estimated damage</span>
+                    <strong>{{ formatShortHours(estimatedPenalty) }}</strong>
+                  </div>
+
+                  <p v-if="sessionError" class="error">{{ sessionError }}</p>
+
+                  <div class="modal-actions">
+                    <button class="ghost-button compact-button" type="button" @click="resetOrder">Clear</button>
+                    <button class="primary-button" type="submit">Log order</button>
+                  </div>
+                </aside>
+              </form>
+            </div>
+          </Transition>
+        </Teleport>
       </section>
     </Transition>
 
     <footer class="site-footer" aria-label="Footer">
-      <div class="footer-icons" aria-hidden="true">
-        <span>X</span>
-        <span>GH</span>
-        <span class="active">□</span>
-      </div>
+      <p class="footer-credit">Created with ❤️ by a Mandi lover</p>
       <strong aria-hidden="true">THEETA</strong>
     </footer>
   </main>
@@ -815,8 +854,7 @@ button {
   font-weight: 700;
 }
 
-.nav-cta,
-.recipe-note button {
+.nav-cta {
   min-height: 48px;
   border: 2px solid var(--line);
   background: #050505;
@@ -829,19 +867,20 @@ button {
 .landing-grid {
   display: grid;
   grid-template-columns: 58% 42%;
-  grid-template-rows: 560px 230px;
-  min-height: 790px;
+  grid-template-rows: 1fr;
+  min-height: calc(100vh - 150px);
 }
 
 .landing-main,
-.landing-side,
-.category-panel,
-.metric-panel {
+.landing-side {
   position: relative;
   border-bottom: 2px solid var(--line);
 }
 
 .landing-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 56px 44px 64px;
   border-right: 2px solid var(--line);
   background:
@@ -858,7 +897,7 @@ button {
 
 .title-row h2 {
   margin: 0;
-  font-size: clamp(3.55rem, 6.7vw, 5.8rem);
+  font-size: clamp(4.6rem, 9vw, 8.5rem);
   line-height: 0.82;
   letter-spacing: -0.04em;
   font-weight: 900;
@@ -866,171 +905,45 @@ button {
 }
 
 .hero-caption {
-  max-width: 520px;
-  margin: 18px 0 0;
+  max-width: 620px;
+  margin: 22px 0 0;
   color: var(--muted);
-  font-size: 1.25rem;
+  font-size: 1.7rem;
   font-weight: 800;
   line-height: 1.35;
 }
 
-.burst {
-  display: grid;
-  width: 96px;
-  height: 96px;
-  place-items: center;
-  margin-top: 10px;
-  clip-path: polygon(50% 0, 60% 24%, 84% 13%, 75% 38%, 100% 50%, 75% 61%, 84% 88%, 59% 76%, 50% 100%, 39% 76%, 13% 88%, 24% 62%, 0 50%, 24% 39%, 13% 13%, 39% 24%);
-  background: var(--green);
-  color: #050505;
-  font-size: 0.88rem;
-  font-weight: 900;
-  line-height: 1;
-  text-align: center;
-}
-
-.hero-plate-card {
-  position: absolute;
-  left: 50px;
-  bottom: 64px;
-  width: 330px;
-  height: 214px;
-}
-
-.orbit-lines {
-  position: absolute;
-  inset: 0;
-}
-
-.orbit-lines span {
-  position: absolute;
-  inset: 24px 0;
-  border: 1.5px solid #050505;
-  border-radius: 50%;
-}
-
-.orbit-lines span:nth-child(2) {
-  transform: translateX(48px);
-}
-
-.orbit-lines span:nth-child(3) {
-  transform: translateX(96px);
-}
-
-.hero-food-photo {
-  position: absolute;
-  left: 104px;
-  top: 46px;
-  width: 138px;
-  height: 138px;
-  border: 2px solid var(--line);
-  border-radius: 50%;
-  background: radial-gradient(circle, #f2c76c 0 56%, #1b1714 57%);
-  box-shadow: 8px 8px 0 #050505;
-}
-
-.food-rice,
-.food-meat,
-.food-leaf {
-  position: absolute;
-  display: block;
-}
-
-.food-rice {
-  inset: 34px;
-  border-radius: 50%;
-  background: #f3d779;
-}
-
-.food-meat {
-  width: 48px;
-  height: 34px;
-  border-radius: 46% 54% 50% 50%;
-  background: #6f301b;
-}
-
-.food-meat.one {
-  left: 42px;
-  top: 50px;
-  transform: rotate(-20deg);
-}
-
-.food-meat.two {
-  right: 42px;
-  bottom: 48px;
-  transform: rotate(18deg);
-}
-
-.food-leaf {
-  right: 43px;
-  top: 40px;
-  width: 38px;
-  height: 20px;
-  border-radius: 100% 0;
-  background: #4f8a3a;
-}
-
-.recipe-note {
-  position: absolute;
-  top: 210px;
-  right: 46px;
-  width: 248px;
-  padding: 18px;
-  border: 2px solid var(--line);
-  background: var(--cream);
-  box-shadow: 8px 8px 0 #050505;
-  font-size: 0.9rem;
-}
-
-.recipe-note strong {
-  display: block;
-  margin-bottom: 12px;
-}
-
-.recipe-note ul {
-  gap: 8px;
-  margin: 0 0 14px 18px;
-  padding: 0;
-  list-style: disc;
-}
-
-.recipe-note li {
-  display: list-item;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.recipe-note button {
-  width: 100%;
-  min-height: 40px;
+.hero-photo {
+  width: min(720px, 96%);
+  margin: 16px 0 0;
+  margin-left: -12px;
+  object-fit: contain;
 }
 
 .landing-side {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 160px;
-  align-items: center;
-  gap: 24px;
-  padding: 54px 36px 54px 48px;
+  place-items: center;
+  padding: 54px 40px;
   background: var(--lavender);
   overflow: hidden;
 }
 
 .orbit-labels {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 3;
-  display: grid;
-  gap: 28px;
-  justify-items: start;
-  transform: rotate(3deg);
+  pointer-events: none;
 }
 
 .sticker {
+  position: absolute;
   display: inline-block;
   width: max-content;
-  padding: 8px 28px;
+  max-width: 60%;
+  padding: 6px 20px;
   color: #050505;
-  font-size: clamp(2rem, 3.4vw, 3rem);
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
   font-weight: 900;
   line-height: 1;
   text-transform: uppercase;
@@ -1038,16 +951,24 @@ button {
 }
 
 .sticker-cream {
+  top: 7%;
+  right: 8%;
   background: #eadcc8;
+  transform: rotate(-6deg);
 }
 
 .sticker-lime {
-  margin-left: 26px;
+  bottom: 12%;
+  left: 5%;
   background: var(--green);
+  transform: rotate(5deg);
 }
 
 .sticker-orange {
+  bottom: 6%;
+  right: 9%;
   background: var(--accent);
+  transform: rotate(-4deg);
 }
 
 .solar-system {
@@ -1062,7 +983,6 @@ button {
   position: absolute;
   border: 2px solid rgba(5, 5, 5, 0.42);
   border-radius: 50%;
-  transform: rotate(-18deg);
 }
 
 .ring-one {
@@ -1080,10 +1000,16 @@ button {
   height: 300px;
 }
 
+.ring-four {
+  width: 560px;
+  height: 372px;
+  border-color: rgba(5, 5, 5, 0.22);
+}
+
 .solar-core {
   position: relative;
   z-index: 2;
-  width: min(260px, 62%);
+  width: min(210px, 52%);
   filter: drop-shadow(10px 12px 0 rgba(5, 5, 5, 0.8));
   animation: solarFloat 5s ease-in-out infinite;
 }
@@ -1096,13 +1022,86 @@ button {
 }
 
 .orbit-mayo {
-  width: 118px;
-  animation: orbitMayo 8s linear infinite;
+  width: 104px;
+  offset-path: ellipse(170px 110px at 50% 50%);
+  offset-rotate: 0deg;
+  animation: orbitPath 16s linear infinite;
 }
 
 .orbit-cola {
-  width: 118px;
-  animation: orbitCola 10s linear infinite;
+  width: 104px;
+  offset-path: ellipse(225px 150px at 50% 50%);
+  offset-rotate: 0deg;
+  animation: orbitPath 20s linear infinite;
+  animation-delay: -10s;
+}
+
+.orbit-person {
+  position: absolute;
+  z-index: 4;
+  width: 58px;
+  height: 58px;
+  offset-rotate: 0deg;
+  animation: orbitPath 24s linear infinite;
+}
+
+.orbit-person img,
+.orbit-person-fallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f7c96b, #ffefe0);
+  object-fit: cover;
+  color: #050505;
+  font-weight: 900;
+  box-shadow: 4px 4px 0 #050505;
+}
+
+.rank-tag {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: grid;
+  min-width: 26px;
+  height: 26px;
+  place-items: center;
+  padding: 0 6px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--green);
+  color: #050505;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.orbit-person-1 {
+  offset-path: ellipse(115px 70px at 50% 50%);
+  offset-distance: 55%;
+  animation-duration: 22s;
+}
+
+.orbit-person-2 {
+  offset-path: ellipse(170px 110px at 50% 50%);
+  offset-distance: 80%;
+  animation-duration: 26s;
+}
+
+.orbit-person-2 .rank-tag {
+  background: #eadcc8;
+}
+
+.orbit-person-3 {
+  offset-path: ellipse(225px 150px at 50% 50%);
+  offset-distance: 35%;
+  animation-duration: 30s;
+}
+
+.orbit-person-3 .rank-tag {
+  background: var(--accent);
+  color: #fffaf2;
 }
 
 .leaderboard-section {
@@ -1157,6 +1156,7 @@ button {
   width: 78px;
   height: 78px;
   place-items: center;
+  overflow: hidden;
   border: 3px solid var(--line);
   border-radius: 50%;
   background: linear-gradient(135deg, #f7c96b, #ffefe0);
@@ -1164,6 +1164,13 @@ button {
   font-size: 2rem;
   font-weight: 900;
   box-shadow: 6px 6px 0 #050505;
+}
+
+.avatar-head img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .avatar-head.champion {
@@ -1246,6 +1253,33 @@ button {
   font-weight: 900;
 }
 
+.podium-block small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.podium-empty {
+  display: grid;
+  gap: 6px;
+  align-content: center;
+  min-height: 470px;
+  padding: 36px;
+  border: 2px dashed var(--line);
+  background: var(--lavender);
+  box-shadow: 10px 10px 0 #050505;
+  text-align: center;
+}
+
+.podium-empty strong {
+  font-size: 1.6rem;
+}
+
+.podium-empty span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .first .podium-block {
   min-height: 230px;
   background: var(--green);
@@ -1258,55 +1292,6 @@ button {
 .third .podium-block {
   min-height: 138px;
   background: #ffefe0;
-}
-
-.category-panel {
-  display: grid;
-  align-content: center;
-  gap: 14px;
-  padding: 38px 86px 38px 40px;
-  border-right: 2px solid var(--line);
-  background: var(--cream);
-}
-
-.category-panel button {
-  min-height: 54px;
-  border: 2px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink);
-  font-weight: 900;
-}
-
-.category-panel .active {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.metric-panel {
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 10px;
-  background: linear-gradient(135deg, var(--cream), var(--cream-2));
-  text-align: center;
-}
-
-.metric-panel span {
-  font-size: 6rem;
-  line-height: 0.8;
-  font-weight: 900;
-}
-
-.metric-panel strong {
-  font-size: 2.8rem;
-  line-height: 1;
-}
-
-.metric-panel p,
-.metric-panel small {
-  margin: 0;
-  font-weight: 900;
 }
 
 .ticker {
@@ -1343,6 +1328,9 @@ button {
 
 .site-footer {
   position: relative;
+  display: grid;
+  place-items: center;
+  align-content: center;
   min-height: 360px;
   margin-top: 0;
   overflow: hidden;
@@ -1350,30 +1338,14 @@ button {
     linear-gradient(180deg, #fff4e2 0%, #fff7eb 44%, #f1dfc9 100%);
 }
 
-.footer-icons {
+.footer-credit {
   position: relative;
   z-index: 2;
-  display: flex;
-  justify-content: center;
-  gap: 18px;
-  padding-top: 34px;
-}
-
-.footer-icons span {
-  display: grid;
-  width: 54px;
-  height: 54px;
-  place-items: center;
-  border-radius: 17px;
-  background: rgba(226, 204, 181, 0.42);
-  color: #9c7a68;
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.4rem;
   font-weight: 900;
-}
-
-.footer-icons .active {
-  border: 3px solid #ee9cff;
-  background: rgba(255, 246, 235, 0.7);
-  color: #7f756b;
+  text-align: center;
 }
 
 .site-footer > strong {
@@ -1399,12 +1371,17 @@ button {
   gap: 28px;
   align-items: center;
   min-height: 280px;
-  padding: 40px;
-  border: 1px solid rgba(222, 211, 197, 0.9);
-  border-radius: 22px;
-  background: rgba(255, 250, 242, 0.86);
-  box-shadow: var(--shadow);
+  padding: 48px 56px;
+  border: 0;
+  border-bottom: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--lavender);
+  box-shadow: none;
   overflow: hidden;
+}
+
+.hero-panel h1 {
+  text-transform: uppercase;
 }
 
 .hero-copy {
@@ -1536,12 +1513,12 @@ h3 {
 }
 
 .workspace {
-  margin-top: 22px;
-  padding: 32px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: rgba(255, 250, 242, 0.92);
-  box-shadow: 0 18px 50px rgba(91, 62, 27, 0.12);
+  margin: 0;
+  padding: 48px 56px 64px;
+  border: 0;
+  border-radius: 0;
+  background: var(--cream);
+  box-shadow: none;
 }
 
 .onboarding {
@@ -1587,23 +1564,21 @@ label {
 input,
 select {
   width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 2px solid var(--line);
+  border-radius: 0;
   background: #fffdf8;
   color: var(--ink);
   padding: 14px 15px;
   outline: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition: box-shadow 160ms ease;
 }
 
 input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(179, 63, 47, 0.12);
+  box-shadow: 4px 4px 0 var(--accent);
 }
 
 select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(179, 63, 47, 0.12);
+  box-shadow: 4px 4px 0 var(--accent);
 }
 
 select:disabled {
@@ -1629,33 +1604,36 @@ label small {
 .primary-button,
 .ghost-button {
   min-height: 48px;
-  border: 0;
-  border-radius: 12px;
-  padding: 0 18px;
-  font-weight: 800;
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  padding: 0 22px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  box-shadow: 4px 4px 0 var(--line);
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
 .primary-button {
-  background: var(--accent);
-  color: #fffaf2;
-  box-shadow: 0 12px 26px rgba(179, 63, 47, 0.26);
+  background: var(--ink);
+  color: #fff;
 }
 
 .primary-button:hover,
 .ghost-button:hover {
-  transform: translateY(-1px);
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 var(--line);
 }
 
 .primary-button:active,
 .ghost-button:active {
-  transform: translateY(1px);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--line);
 }
 
 .ghost-button {
-  border: 1px solid var(--line);
-  background: #fffdf8;
-  color: var(--accent-dark);
+  background: var(--cream);
+  color: var(--ink);
 }
 
 .google-button {
@@ -1699,10 +1677,11 @@ label small {
 .error-banner {
   margin-top: 18px;
   padding: 14px 16px;
-  border: 1px solid rgba(158, 31, 22, 0.22);
-  border-radius: 12px;
-  background: rgba(158, 31, 22, 0.08);
-  color: #9e1f16;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--accent);
+  box-shadow: 4px 4px 0 var(--line);
+  color: #fffaf2;
   font-weight: 800;
 }
 
@@ -1724,53 +1703,70 @@ label small {
   width: 64px;
   height: 64px;
   flex: 0 0 auto;
-  border: 2px solid #fffdf8;
+  border: 2px solid var(--line);
   border-radius: 50%;
-  box-shadow: 0 10px 24px rgba(91, 62, 27, 0.18);
+  box-shadow: 4px 4px 0 var(--line);
+}
+
+.profile-head h2 {
+  text-transform: uppercase;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: 1.45fr repeat(4, 1fr);
-  gap: 16px;
-  margin: 26px 0;
+  gap: 18px;
+  margin: 28px 0;
 }
 
 .stats-grid article {
   min-height: 146px;
   padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #fffdf8;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--cream);
+  box-shadow: 6px 6px 0 var(--line);
 }
 
 .stats-grid strong {
   display: block;
   font-size: clamp(1.9rem, 4vw, 3.5rem);
   line-height: 1;
+  font-weight: 900;
 }
 
 .life-card {
   position: relative;
   overflow: hidden;
+  background: var(--green) !important;
 }
 
 .life-card em {
   display: inline-block;
   margin-top: 16px;
-  color: var(--accent);
+  color: var(--ink);
   font-style: normal;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .life-card--pulse {
   animation: lifePulse 880ms ease;
 }
 
-.log-panel {
-  padding: 20px;
-  border-radius: 16px;
-  background: var(--panel-strong);
+.log-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px 26px;
+  border: 2px solid var(--line);
+  background: var(--lavender);
+  box-shadow: 6px 6px 0 var(--line);
+}
+
+.log-cta h3 {
+  font-size: 1.5rem;
+  text-transform: uppercase;
 }
 
 .menu-card {
@@ -1798,10 +1794,14 @@ label small {
 
 .menu-category,
 .order-summary {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #fffdf8;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--cream);
   padding: 16px;
+}
+
+.category-head strong {
+  text-transform: uppercase;
 }
 
 .category-head {
@@ -1838,9 +1838,9 @@ label small {
 .category-icon {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
-  background: #fff3df;
-  box-shadow: inset 0 0 0 1px rgba(179, 63, 47, 0.12);
+  border-radius: 0;
+  border: 2px solid var(--line);
+  background: var(--cream-2);
 }
 
 .menu-items {
@@ -1859,23 +1859,27 @@ label small {
   gap: 8px;
   justify-items: center;
   align-content: center;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 2px solid var(--line);
+  border-radius: 0;
   background: #fff8ec;
   color: var(--ink);
   padding: 14px 10px;
   text-align: center;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.menu-item strong {
+  text-transform: uppercase;
 }
 
 .menu-item:hover {
-  transform: translateY(-2px);
-  border-color: rgba(179, 63, 47, 0.46);
-  box-shadow: 0 12px 24px rgba(91, 62, 27, 0.12);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--line);
 }
 
 .menu-item:active {
-  transform: translateY(0);
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 
 .item-icon {
@@ -1974,7 +1978,8 @@ label small {
   align-items: center;
   gap: 10px;
   padding: 10px;
-  border-radius: 12px;
+  border: 2px solid var(--line);
+  border-radius: 0;
   background: #fff8ec;
 }
 
@@ -1986,10 +1991,10 @@ label small {
 .order-lines button {
   width: 34px;
   height: 34px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 2px solid var(--line);
+  border-radius: 0;
   background: #fffdf8;
-  color: var(--accent-dark);
+  color: var(--ink);
   font-size: 1.2rem;
   font-weight: 900;
 }
@@ -2000,9 +2005,10 @@ label small {
   justify-content: space-between;
   gap: 14px;
   padding: 14px;
-  border-radius: 14px;
-  background: var(--accent-dark);
-  color: #fffaf2;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--green);
 }
 
 .damage-ticket span {
@@ -2013,46 +2019,25 @@ label small {
   font-size: 1.6rem;
 }
 
-.log-form {
-  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
-  align-items: end;
-}
-
-.stepper {
-  display: grid;
-  grid-template-columns: 48px minmax(80px, 120px) 48px;
-  gap: 8px;
-}
-
-.stepper button {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #fffdf8;
-  color: var(--ink);
-  font-size: 1.4rem;
-  font-weight: 800;
-}
-
-.fine-print {
-  margin: 12px 0 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-
 .history {
-  margin-top: 26px;
+  margin-top: 36px;
+}
+
+.history-head h3 {
+  text-transform: uppercase;
+  font-size: 1.4rem;
 }
 
 .history-head span {
   color: var(--muted);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 ul {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   padding: 0;
-  margin: 16px 0 0;
+  margin: 18px 0 0;
   list-style: none;
 }
 
@@ -2061,10 +2046,11 @@ li {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fffdf8;
+  padding: 16px 18px;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--cream);
+  box-shadow: 4px 4px 0 var(--line);
 }
 
 li div {
@@ -2080,21 +2066,105 @@ li span {
 li b {
   color: var(--accent);
   font-size: 1.25rem;
+  font-weight: 900;
 }
 
 .empty-state {
   display: grid;
   gap: 4px;
   margin-top: 16px;
-  padding: 22px;
-  border: 1px dashed var(--line);
-  border-radius: 14px;
+  padding: 28px;
+  border: 2px dashed var(--line);
+  border-radius: 0;
   color: var(--muted);
-  background: rgba(255, 253, 248, 0.6);
+  background: var(--cream);
 }
 
 .empty-state strong {
   color: var(--ink);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 5, 5, 0.55);
+  overflow-y: auto;
+}
+
+.modal-card {
+  width: min(900px, 100%);
+  max-height: 90vh;
+  margin: auto;
+  overflow-y: auto;
+  padding: 28px;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--cream);
+  box-shadow: 12px 12px 0 var(--line);
+}
+
+.modal-card .menu-head h3 {
+  text-transform: uppercase;
+  font-size: 1.5rem;
+}
+
+.modal-card .order-summary {
+  position: static;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 3px 3px 0 var(--line);
+}
+
+.icon-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+}
+
+.modal-actions .primary-button {
+  width: 100%;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-card,
+.modal-leave-active .modal-card {
+  transition: transform 180ms ease;
+}
+
+.modal-enter-from .modal-card,
+.modal-leave-to .modal-card {
+  transform: translateY(12px);
 }
 
 .swap-enter-active,
@@ -2161,39 +2231,12 @@ li b {
   }
 }
 
-@keyframes orbitMayo {
+@keyframes orbitPath {
   from {
-    transform: rotate(0deg) translateX(170px) rotate(0deg);
+    offset-distance: 0%;
   }
   to {
-    transform: rotate(360deg) translateX(170px) rotate(-360deg);
-  }
-}
-
-@keyframes orbitCola {
-  from {
-    transform: rotate(180deg) translateX(215px) rotate(-180deg);
-  }
-  to {
-    transform: rotate(540deg) translateX(215px) rotate(-540deg);
-  }
-}
-
-@keyframes orbitMayoMobile {
-  from {
-    transform: rotate(0deg) translateX(124px) rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg) translateX(124px) rotate(-360deg);
-  }
-}
-
-@keyframes orbitColaMobile {
-  from {
-    transform: rotate(180deg) translateX(146px) rotate(-180deg);
-  }
-  to {
-    transform: rotate(540deg) translateX(146px) rotate(-540deg);
+    offset-distance: 100%;
   }
 }
 
@@ -2226,31 +2269,17 @@ li b {
   }
 
   .landing-main,
-  .landing-side,
-  .category-panel {
+  .landing-side {
     border-right: 0;
   }
 
   .landing-main {
-    min-height: 720px;
-    padding: 42px 22px 290px;
+    min-height: auto;
+    padding: 42px 22px 64px;
   }
 
   .title-row {
     flex-direction: column;
-  }
-
-  .hero-plate-card {
-    left: 12px;
-    bottom: 130px;
-    width: 300px;
-  }
-
-  .recipe-note {
-    top: auto;
-    right: 18px;
-    bottom: 36px;
-    width: min(240px, calc(100% - 36px));
   }
 
   .landing-side {
@@ -2286,14 +2315,42 @@ li b {
     height: 230px;
   }
 
+  .ring-four {
+    width: 410px;
+    height: 280px;
+  }
+
   .orbit-mayo {
-    width: 82px;
-    animation-name: orbitMayoMobile;
+    width: 70px;
+    offset-path: ellipse(135px 90px at 50% 50%);
   }
 
   .orbit-cola {
-    width: 82px;
-    animation-name: orbitColaMobile;
+    width: 70px;
+    offset-path: ellipse(165px 115px at 50% 50%);
+  }
+
+  .orbit-person {
+    width: 46px;
+    height: 46px;
+  }
+
+  .orbit-person-1 {
+    offset-path: ellipse(95px 58px at 50% 50%);
+  }
+
+  .orbit-person-2 {
+    offset-path: ellipse(135px 90px at 50% 50%);
+  }
+
+  .orbit-person-3 {
+    offset-path: ellipse(165px 115px at 50% 50%);
+  }
+
+  .rank-tag {
+    min-width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
   }
 
   .leaderboard-section {
@@ -2343,14 +2400,6 @@ li b {
     font-size: 3.4rem;
   }
 
-  .category-panel {
-    padding: 34px 22px;
-  }
-
-  .metric-panel {
-    min-height: 240px;
-  }
-
   .ticker {
     font-size: 1rem;
   }
@@ -2362,10 +2411,18 @@ li b {
   .hero-panel,
   .onboarding,
   .stats-grid,
-  .log-form,
   .menu-card,
   .menu-items {
     grid-template-columns: 1fr;
+  }
+
+  .log-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modal-card {
+    padding: 20px;
   }
 
   .menu-head {
