@@ -53,26 +53,13 @@ watch([user, profileCreated], () => {
 
 <template>
   <div v-if="user && profileCreated">
-    <section class="hero-panel" aria-labelledby="app-title">
-      <div class="hero-copy">
-        <p class="eyebrow">Google login · Cloudflare D1</p>
-        <h1 id="app-title">Mandi Theeta</h1>
-        <p>
-          A tiny accountability machine for every mandi decision that felt correct at the time.
-        </p>
-      </div>
-
-      <div class="plate-orbit" aria-hidden="true">
-        <div class="steam steam-one" />
-        <div class="steam steam-two" />
-        <div class="plate">
-          <span class="rice" />
-          <span class="meat meat-one" />
-          <span class="meat meat-two" />
-          <span class="leaf" />
-        </div>
-      </div>
-    </section>
+    <header class="dash-nav">
+      <a class="brand-mark" href="/" aria-label="Mandi Theeta home">
+        <img src="/images/logo.png" alt="Mandi Theeta" />
+        <span class="brand-name">mandi.theeta.in</span>
+      </a>
+      <ProfileMenu :user="user" @logout="logout" />
+    </header>
 
     <section class="workspace dashboard">
       <div class="top-row">
@@ -84,8 +71,6 @@ watch([user, profileCreated], () => {
             <p class="muted">{{ impactLine }}</p>
           </div>
         </div>
-
-        <button class="ghost-button" type="button" @click="logout">Sign out</button>
       </div>
 
       <div v-if="error" class="error-banner">

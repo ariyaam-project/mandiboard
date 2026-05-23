@@ -48,15 +48,9 @@ function leaderInitial(leader: Leader) {
   return leader.displayName.trim().charAt(0).toUpperCase() || '?'
 }
 
-if (user.value && profileCreated.value) {
-  await navigateTo('/dashboard')
+function openDashboard() {
+  navigateTo('/dashboard')
 }
-
-watch([user, profileCreated], () => {
-  if (user.value && profileCreated.value) {
-    navigateTo('/dashboard')
-  }
-})
 </script>
 
 <template>
@@ -66,13 +60,15 @@ watch([user, profileCreated], () => {
       <p class="muted">Checking your mandi paperwork...</p>
     </section>
 
-    <div v-else-if="!user" key="login" class="landing-stack">
+    <div v-else-if="!user || profileCreated" key="login" class="landing-stack">
       <section class="landing-frame">
         <nav class="landing-nav" aria-label="Primary">
           <a class="brand-mark" href="/" aria-label="Mandi Theeta home">
             <img src="/images/logo.png" alt="Mandi Theeta" />
             <span class="brand-name">mandi.theeta.in</span>
           </a>
+          <ProfileMenu v-if="user" :user="user" @logout="logout" />
+          <button v-else class="nav-cta" type="button" @click="loginWithGoogle">SIGN IN</button>
         </nav>
 
         <div class="area-hero">
@@ -85,7 +81,9 @@ watch([user, profileCreated], () => {
                 Add every mandi you eat on mandi.theeta.in and watch it add up.
                 Easy to use, and just a little scary.
               </p>
-              <button class="area-cta" type="button" @click="loginWithGoogle">Get started</button>
+              <button class="area-cta" type="button" @click="user ? openDashboard() : loginWithGoogle()">
+                {{ user ? 'Open dashboard' : 'Get started' }}
+              </button>
 
               <p class="area-credit">Made by mandi lovers</p>
             </div>
