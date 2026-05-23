@@ -97,13 +97,14 @@ button {
 }
 
 .nav-cta {
-  min-height: 48px;
-  padding: 0 26px;
+  min-height: 44px;
+  padding: 0 24px;
   border: 2px solid var(--line);
   border-radius: 999px;
   background: var(--ink);
   color: #fff;
   font-weight: 900;
+  white-space: nowrap;
   text-transform: uppercase;
   box-shadow: 4px 4px 0 var(--line);
   transition: transform 120ms ease, box-shadow 120ms ease;
@@ -1953,6 +1954,28 @@ li b {
 
   .dash-nav {
     padding: 16px 22px;
+  }
+
+  .brand-name {
+    font-size: 1.2rem;
+  }
+
+  .brand-mark img {
+    height: 40px;
+  }
+
+  .profile-name {
+    display: none;
+  }
+
+  .profile-pill {
+    padding: 5px;
+  }
+
+  .nav-cta {
+    min-height: 40px;
+    padding: 0 18px;
+    font-size: 0.9rem;
   }
 
   .nav-links {
