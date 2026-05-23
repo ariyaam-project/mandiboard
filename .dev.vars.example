@@ -1,0 +1,7 @@
+NUXT_PUBLIC_APP_URL=http://localhost:8788
+NUXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+NUXT_GOOGLE_CLIENT_SECRET=your-google-client-secret
+NUXT_SESSION_SECRET=change-this-to-a-long-random-secret
+NUXT_PUBLIC_PENALTY_HOURS_PER_QUARTER=1.5
+NUXT_PUBLIC_MAYO_PENALTY_HOURS=1
+NUXT_PUBLIC_SOFT_DRINK_PENALTY_HOURS=2

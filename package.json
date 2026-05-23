@@ -1,0 +1,24 @@
+{
+  "name": "mandi-theeta",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "dev:cf": "nuxt build && wrangler pages dev dist --compatibility-date=2025-05-15 --d1=DB",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "deploy": "nuxt build && wrangler pages deploy dist",
+    "db:migrate:local": "wrangler d1 migrations apply mandi-theeta --local",
+    "db:migrate:remote": "wrangler d1 migrations apply mandi-theeta --remote",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxtjs/google-fonts": "^3.2.0",
+    "nuxt": "^3.17.5",
+    "vue": "^3.5.14"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260523.0",
+    "wrangler": "^4.18.0"
+  }
+}

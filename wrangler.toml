@@ -1,0 +1,9 @@
+name = "mandi-theeta"
+compatibility_date = "2025-05-15"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mandi-theeta"
+database_id = "replace-with-your-cloudflare-d1-database-id"
+preview_database_id = "mandi-theeta-local"
