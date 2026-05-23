@@ -40,6 +40,37 @@ const {
   formatShortHours
 } = await useMandi()
 
+const activityWeeks = computed(() => {
+  const counts = new Map<string, number>()
+  for (const session of sessions.value) {
+    const d = new Date(session.eatenAt)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    counts.set(key, (counts.get(key) || 0) + 1)
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const weeks = 26
+  const start = new Date(today)
+  start.setDate(start.getDate() - (weeks * 7 - 1))
+  start.setDate(start.getDate() - start.getDay())
+
+  const columns: { key: string; level: number; count: number }[][] = []
+  const cursor = new Date(start)
+  while (cursor <= today) {
+    const column: { key: string; level: number; count: number }[] = []
+    for (let i = 0; i < 7; i += 1) {
+      const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`
+      const count = cursor > today ? 0 : counts.get(key) || 0
+      const level = cursor > today ? -1 : count === 0 ? 0 : count <= 1 ? 1 : count <= 2 ? 2 : count <= 4 ? 3 : 4
+      column.push({ key, level, count })
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    columns.push(column)
+  }
+  return columns
+})
+
 if (!user.value || !profileCreated.value) {
   await navigateTo('/')
 }
@@ -69,6 +100,21 @@ watch([user, profileCreated], () => {
             <p class="section-kicker">Signed in</p>
             <h2>{{ user.displayName }}</h2>
             <p class="muted">{{ impactLine }}</p>
+          </div>
+        </div>
+
+        <div class="activity">
+          <span class="activity-title">Mandi activity</span>
+          <div class="activity-grid">
+            <div v-for="(column, ci) in activityWeeks" :key="ci" class="activity-col">
+              <span
+                v-for="cell in column"
+                :key="cell.key"
+                class="activity-cell"
+                :data-level="cell.level"
+                :title="`${cell.key} · ${cell.count} mandi`"
+              />
+            </div>
           </div>
         </div>
       </div>

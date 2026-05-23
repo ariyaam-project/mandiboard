@@ -182,6 +182,13 @@ export async function useMandi() {
       return
     }
 
+    const todayKey = toDateKey(new Date())
+    const todayCount = sessions.value.filter((session) => toDateKey(session.eatenAt) === todayKey).length
+    if (todayCount >= 4) {
+      sessionError.value = 'ne jeevikan vendi thinnano atho thinnan vendi jeevikano? 🙂'
+      return
+    }
+
     const normalizedQuarterUnits = Math.min(80, Math.floor(quarterUnits.value))
     const normalizedMayoUnits = Math.min(20, Math.max(0, Math.floor(mayoUnits.value || 0)))
     const normalizedSoftDrinks = Math.min(20, Math.max(0, Math.floor(softDrinks.value || 0)))
@@ -205,8 +212,14 @@ export async function useMandi() {
       window.setTimeout(() => {
         pulseLife.value = false
       }, 900)
-    } catch {
-      sessionError.value = 'Could not log this session. The mandi survived the paperwork.'
+    } catch (error) {
+      const status = (error as { statusCode?: number })?.statusCode
+      const message = (error as { statusMessage?: string })?.statusMessage
+      if (status === 429 && message) {
+        sessionError.value = message
+      } else {
+        sessionError.value = 'Could not log this session. The mandi survived the paperwork.'
+      }
     }
   }
 

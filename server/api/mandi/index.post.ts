@@ -30,6 +30,23 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const db = getDb(event)
+  await ensureSchema(db)
+
+  const todayCount = await db
+    .prepare(
+      `SELECT COUNT(*) AS count FROM mandi_sessions WHERE user_id = ? AND date(eaten_at) = date('now')`
+    )
+    .bind(user.id)
+    .first<{ count: number }>()
+
+  if ((todayCount?.count ?? 0) >= 4) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: 'ne jeevikan vendi thinnano atho thinnan vendi jeevikano? 🙂'
+    })
+  }
+
   const penaltyHoursPerQuarter =
     Number(config.public.penaltyHoursPerQuarter) || DEFAULT_PENALTY_HOURS_PER_QUARTER
   const mayoPenaltyHours =
@@ -50,9 +67,6 @@ export default defineEventHandler(async (event) => {
     softDrinkType,
     penaltyHours
   }
-
-  const db = getDb(event)
-  await ensureSchema(db)
 
   await db
     .prepare(
