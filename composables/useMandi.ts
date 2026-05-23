@@ -30,6 +30,7 @@ export async function useMandi() {
   })
 
   const lifeExpectancyYears = ref(75)
+  const displayName = ref('')
   const onboardingError = ref('')
   const quarterUnits = ref(0)
   const mayoUnits = ref(0)
@@ -132,6 +133,9 @@ export async function useMandi() {
     if (user.value?.initialLifeExpectancyYears) {
       lifeExpectancyYears.value = user.value.initialLifeExpectancyYears
     }
+    if (user.value?.displayName && !displayName.value) {
+      displayName.value = user.value.displayName
+    }
   })
 
   function loginWithGoogle() {
@@ -141,8 +145,18 @@ export async function useMandi() {
   async function completeOnboarding() {
     onboardingError.value = ''
 
+    if (!displayName.value.trim()) {
+      onboardingError.value = 'Tell us your name first.'
+      return
+    }
+
     if (!Number.isFinite(lifeExpectancyYears.value) || lifeExpectancyYears.value < 1) {
       onboardingError.value = 'Life expectancy needs to be at least 1 year. Be dramatic, not impossible.'
+      return
+    }
+
+    if (lifeExpectancyYears.value > 150) {
+      onboardingError.value = 'ath kurach athyagraham alle monu'
       return
     }
 
@@ -150,7 +164,8 @@ export async function useMandi() {
       await $fetch('/api/me', {
         method: 'PATCH',
         body: {
-          initialLifeExpectancyYears: lifeExpectancyYears.value
+          initialLifeExpectancyYears: lifeExpectancyYears.value,
+          displayName: displayName.value.trim()
         }
       })
       await refresh()
@@ -336,6 +351,7 @@ export async function useMandi() {
     sessions,
     profileCreated,
     lifeExpectancyYears,
+    displayName,
     onboardingError,
     quarterUnits,
     mayoUnits,

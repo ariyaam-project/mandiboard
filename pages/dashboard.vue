@@ -161,127 +161,68 @@ watch([user, profileCreated], () => {
       <Teleport to="body">
         <Transition name="modal">
           <div v-if="showLogModal" class="modal-backdrop" @click.self="closeLogModal">
-            <form class="modal-card menu-card" @submit.prevent="logMandiSession">
+            <form class="modal-card simple-modal" @submit.prevent="logMandiSession">
               <div class="menu-head">
                 <div>
-                  <p class="section-kicker">Menu card</p>
-                  <h3>Build this session</h3>
+                  <p class="section-kicker">Log mandi</p>
+                  <h3>How much today?</h3>
                 </div>
                 <button class="icon-button" type="button" aria-label="Close" @click="closeLogModal">×</button>
               </div>
 
-              <div class="menu-grid">
-                <section class="menu-category">
-                  <div class="category-head">
-                    <span class="category-icon plate-icon" aria-hidden="true"><i /></span>
-                    <div>
-                      <strong>Main</strong>
-                      <small>Mandi in quarter multiples</small>
-                    </div>
+              <div class="step-rows">
+                <div class="step-row">
+                  <div class="step-info">
+                    <strong>Mandi</strong>
+                    <small>{{ formatMandiQuantity(quarterUnits / 4) }} plate · +{{ formatShortHours(penaltyHoursPerQuarter) }} per quarter</small>
                   </div>
+                  <div class="step-control">
+                    <button type="button" aria-label="Less mandi" @click="removeMandiQuarter">−</button>
+                    <b>{{ quarterUnits }}/4</b>
+                    <button type="button" aria-label="More mandi" @click="addMandi(1)">+</button>
+                  </div>
+                </div>
 
-                  <div class="menu-items">
-                    <button class="menu-item" type="button" @click="addMandi(1)">
-                      <span class="item-icon plate-quarter" aria-hidden="true"><i /></span>
-                      <strong>Quarter</strong>
-                      <small>+{{ formatShortHours(penaltyHoursPerQuarter) }}</small>
-                    </button>
-                    <button class="menu-item" type="button" @click="addMandi(2)">
-                      <span class="item-icon plate-half" aria-hidden="true"><i /></span>
-                      <strong>Half</strong>
-                      <small>+{{ formatShortHours(penaltyHoursPerQuarter * 2) }}</small>
-                    </button>
-                    <button class="menu-item" type="button" @click="addMandi(4)">
-                      <span class="item-icon plate-full" aria-hidden="true"><i /></span>
-                      <strong>Full</strong>
-                      <small>+{{ formatShortHours(penaltyHoursPerQuarter * 4) }}</small>
-                    </button>
+                <div class="step-row">
+                  <div class="step-info">
+                    <strong>Mayo</strong>
+                    <small>+{{ formatShortHours(mayoPenaltyHours) }} per cup</small>
                   </div>
-                </section>
+                  <div class="step-control">
+                    <button type="button" aria-label="Less mayo" @click="removeMayo">−</button>
+                    <b>{{ mayoUnits }}</b>
+                    <button type="button" aria-label="More mayo" @click="addMayo">+</button>
+                  </div>
+                </div>
 
-                <section class="menu-category">
-                  <div class="category-head">
-                    <span class="category-icon mayo-icon" aria-hidden="true" />
-                    <div>
-                      <strong>Sides</strong>
-                      <small>Mayonnaise damage control, allegedly</small>
-                    </div>
+                <div class="step-row">
+                  <div class="step-info">
+                    <strong>Soft drink</strong>
+                    <select v-model="softDrinkType">
+                      <option value="pepsi">Pepsi</option>
+                      <option value="coca-cola">Coca-Cola</option>
+                      <option value="other">Other</option>
+                    </select>
                   </div>
-
-                  <div class="menu-items single">
-                    <button class="menu-item" type="button" @click="addMayo">
-                      <span class="item-icon mayo-cup" aria-hidden="true" />
-                      <strong>Mayo cup</strong>
-                      <small>+{{ formatShortHours(mayoPenaltyHours) }}</small>
-                    </button>
+                  <div class="step-control">
+                    <button type="button" aria-label="Less drinks" @click="removeSoftDrink">−</button>
+                    <b>{{ softDrinks }}</b>
+                    <button type="button" aria-label="More drinks" @click="addSoftDrink(softDrinkType)">+</button>
                   </div>
-                </section>
-
-                <section class="menu-category">
-                  <div class="category-head">
-                    <span class="category-icon drink-icon" aria-hidden="true" />
-                    <div>
-                      <strong>Drinks</strong>
-                      <small>Soft drinks for multiplier energy</small>
-                    </div>
-                  </div>
-
-                  <div class="menu-items">
-                    <button class="menu-item" type="button" @click="addSoftDrink('pepsi')">
-                      <span class="item-icon can-icon can-blue" aria-hidden="true" />
-                      <strong>Pepsi</strong>
-                      <small>+{{ formatShortHours(softDrinkPenaltyHours) }}</small>
-                    </button>
-                    <button class="menu-item" type="button" @click="addSoftDrink('coca-cola')">
-                      <span class="item-icon can-icon can-red" aria-hidden="true" />
-                      <strong>Coca-Cola</strong>
-                      <small>+{{ formatShortHours(softDrinkPenaltyHours) }}</small>
-                    </button>
-                    <button class="menu-item" type="button" @click="addSoftDrink('other')">
-                      <span class="item-icon can-icon can-neutral" aria-hidden="true" />
-                      <strong>Other</strong>
-                      <small>+{{ formatShortHours(softDrinkPenaltyHours) }}</small>
-                    </button>
-                  </div>
-                </section>
+                </div>
               </div>
 
-              <aside class="order-summary">
-                <div>
-                  <span class="stat-label">Current order</span>
-                  <strong>{{ formatMandiQuantity(quarterUnits / 4) }} mandi</strong>
-                </div>
+              <div class="damage-ticket">
+                <span>Estimated damage</span>
+                <strong>{{ formatShortHours(estimatedPenalty) }}</strong>
+              </div>
 
-                <div class="order-lines">
-                  <div>
-                    <span>Main</span>
-                    <b>{{ quarterUnits }} quarter{{ quarterUnits === 1 ? '' : 's' }}</b>
-                    <button type="button" aria-label="Remove one mandi quarter" @click="removeMandiQuarter">−</button>
-                  </div>
-                  <div>
-                    <span>Sides</span>
-                    <b>{{ mayoUnits }} mayo</b>
-                    <button type="button" aria-label="Remove one mayo" @click="removeMayo">−</button>
-                  </div>
-                  <div>
-                    <span>Drinks</span>
-                    <b>{{ softDrinks }} {{ softDrinkType }}</b>
-                    <button type="button" aria-label="Remove one soft drink" @click="removeSoftDrink">−</button>
-                  </div>
-                </div>
+              <p v-if="sessionError" class="error">{{ sessionError }}</p>
 
-                <div class="damage-ticket">
-                  <span>Estimated damage</span>
-                  <strong>{{ formatShortHours(estimatedPenalty) }}</strong>
-                </div>
-
-                <p v-if="sessionError" class="error">{{ sessionError }}</p>
-
-                <div class="modal-actions">
-                  <button class="ghost-button compact-button" type="button" @click="resetOrder">Clear</button>
-                  <button class="primary-button" type="submit">Log order</button>
-                </div>
-              </aside>
+              <div class="modal-actions">
+                <button class="ghost-button compact-button" type="button" @click="resetOrder">Clear</button>
+                <button class="primary-button" type="submit" :disabled="quarterUnits < 1">Log mandi</button>
+              </div>
             </form>
           </div>
         </Transition>

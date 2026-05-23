@@ -17,12 +17,18 @@ const {
   error,
   profileCreated,
   lifeExpectancyYears,
+  displayName,
   onboardingError,
   loginWithGoogle,
   completeOnboarding,
   logout,
   formatMandiQuantity
 } = await useMandi()
+
+const lifespanTooHigh = computed(() => Number(lifeExpectancyYears.value) > 150)
+const onboardingDisabled = computed(
+  () => lifespanTooHigh.value || !displayName.value.trim() || Number(lifeExpectancyYears.value) < 1
+)
 
 const route = useRoute()
 const authError = computed(() => route.query.authError === 'google')
@@ -182,29 +188,43 @@ watch([user, profileCreated], () => {
     <section v-else key="onboarding" class="workspace onboarding">
       <div>
         <p class="section-kicker">Onboarding</p>
-        <h2>Set your life expectancy</h2>
+        <h2>Set up your mandi profile</h2>
         <p class="muted">
-          Signed in as {{ user.displayName }}. Pick the starting number before mandi starts auditing your timeline.
+          Tell us your name and how long you plan to stick around. Mandi will take it from there.
         </p>
       </div>
 
       <form class="form-grid" @submit.prevent="completeOnboarding">
         <label>
-          <span>Initial life expectancy</span>
+          <span>Your name</span>
+          <input
+            v-model="displayName"
+            type="text"
+            maxlength="80"
+            placeholder="Name"
+            autocomplete="name"
+          />
+        </label>
+
+        <label>
+          <span>Expected lifespan</span>
           <div class="input-with-unit">
             <input
               v-model.number="lifeExpectancyYears"
               inputmode="numeric"
               min="1"
-              max="140"
+              max="150"
               type="number"
+              :class="{ 'input--error': lifespanTooHigh }"
             />
             <strong>years</strong>
           </div>
         </label>
 
-        <p v-if="onboardingError" class="error">{{ onboardingError }}</p>
-        <button class="primary-button" type="submit">Start tracking</button>
+        <p v-if="lifespanTooHigh" class="error">ath kurach athyagraham alle monu</p>
+        <p v-else-if="onboardingError" class="error">{{ onboardingError }}</p>
+
+        <button class="primary-button" type="submit" :disabled="onboardingDisabled">Start tracking</button>
         <button class="ghost-button" type="button" @click="logout">Sign out</button>
       </form>
     </section>

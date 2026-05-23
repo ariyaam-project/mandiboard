@@ -1046,6 +1046,19 @@ label small {
   color: var(--ink);
 }
 
+.primary-button:disabled,
+.ghost-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 4px 4px 0 var(--line);
+}
+
+.input--error {
+  border-color: var(--accent);
+  box-shadow: 4px 4px 0 var(--accent);
+}
+
 .google-button {
   display: inline-flex;
   align-items: center;
@@ -1555,6 +1568,77 @@ li b {
 
 .modal-actions .primary-button {
   width: 100%;
+}
+
+.simple-modal {
+  display: grid;
+  gap: 18px;
+  width: min(460px, 100%);
+}
+
+.step-rows {
+  display: grid;
+  gap: 12px;
+}
+
+.step-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--cream);
+}
+
+.step-info {
+  display: grid;
+  gap: 4px;
+}
+
+.step-info strong {
+  text-transform: uppercase;
+}
+
+.step-info small {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.step-info select {
+  width: max-content;
+  margin-top: 6px;
+  padding: 6px 10px;
+}
+
+.step-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.step-control button {
+  width: 42px;
+  height: 42px;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: #fffdf8;
+  color: var(--ink);
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.step-control button:active {
+  transform: translate(1px, 1px);
+}
+
+.step-control b {
+  min-width: 46px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 900;
 }
 
 .modal-enter-active,
